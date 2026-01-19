@@ -563,26 +563,42 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 768px) {
     /* 1. Make the container scrollable horizontally */
     #entity-deck-container {
-        justify-content: flex-start; /* Align left to allow scrolling */
-        overflow-x: auto;            /* Enable scroll */
-        padding-left: 50vw;          /* Center the first item initially */
-        margin-left: -120px;         /* Offset to true center (half card width) */
-        gap: 40px;                   /* Shrink gap significantly */
+        /* CRITICAL FIX: Enable touch interaction for scrolling */
+        pointer-events: auto; 
+        
+        /* Layout for scrolling */
+        justify-content: flex-start; 
+        overflow-x: auto;            
+        
+        /* Centering Logic: Padding = 50% screen width - Half card width (100px) */
+        padding-left: calc(50vw - 100px);          
+        padding-right: calc(50vw - 100px);
+        margin-left: 0; /* Remove the negative margin, it breaks layout */
+        
+        gap: 30px;
         perspective: 800px;
+        
+        /* Snap Physics (Makes it feel like a native app carousel) */
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
         
         /* Hide Scrollbar */
         scrollbar-width: none; 
         -ms-overflow-style: none;
     }
+    
     #entity-deck-container::-webkit-scrollbar { 
         display: none; 
     }
 
-    /* 2. Shrink the stacks */
+    /* 2. Shrink the stacks & Add Snap Alignment */
     .entity-stack {
-        width: 200px;  /* Smaller width */
-        height: 280px; /* Smaller height */
-        flex-shrink: 0; /* Prevent squashing */
+        width: 200px;
+        height: 280px;
+        flex-shrink: 0; 
+        
+        /* Tells the container to lock this element to center */
+        scroll-snap-align: center; 
     }
 
     .entity-stack-label {
