@@ -563,24 +563,27 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 @media (max-width: 768px) {
     /* 1. Make the container scrollable horizontally */
     #entity-deck-container {
-        /* CRITICAL FIX: Enable touch interaction for scrolling */
-        pointer-events: auto; 
+        /* FIX: Limit height so we don't block the canvas/UI */
+        height: 350px; 
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: auto; /* Now only captures touches in the middle strip */
         
         /* Layout for scrolling */
         justify-content: flex-start; 
+        align-items: center;
         overflow-x: auto;            
         
         /* Centering Logic: Padding = 50% screen width - Half card width (100px) */
         padding-left: calc(50vw - 100px);          
         padding-right: calc(50vw - 100px);
-        margin-left: 0; /* Remove the negative margin, it breaks layout */
         
         gap: 30px;
         perspective: 800px;
         
-        /* Snap Physics (Makes it feel like a native app carousel) */
+        /* Snap Physics */
         scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
+        -webkit-overflow-scrolling: touch;
         
         /* Hide Scrollbar */
         scrollbar-width: none; 
@@ -596,9 +599,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         width: 200px;
         height: 280px;
         flex-shrink: 0; 
-        
-        /* Tells the container to lock this element to center */
-        scroll-snap-align: center; 
+        scroll-snap-align: center; /* Locks card to center */
     }
 
     .entity-stack-label {
