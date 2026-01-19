@@ -1,0 +1,559 @@
+/* Update in style.css */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #050505;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    position: fixed; 
+    width: 100%; 
+    height: 100dvh; /* Change from 100vh to 100dvh */
+}
+
+#symbiosis-container {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100dvh; /* Match the body height */
+    z-index: 1;
+}
+canvas { display: block; }
+
+/* --- MOOD LEGEND (New) --- */
+#mood-legend {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    z-index: 5;
+    pointer-events: none; /* Let clicks pass through */
+    transition: opacity 0.5s ease;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 2px black;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: white;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.legend-text {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- TERMINAL HISTORY --- */
+#terminal-history {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 8, 0.95);
+    z-index: 8; /* Below UI, Above Canvas */
+    backdrop-filter: blur(10px);
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.3s ease, pointer-events 0.3s ease;
+    opacity: 1;
+    pointer-events: auto;
+}
+#terminal-history.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+#terminal-content {
+    max-width: 800px;
+    margin: 60px auto 120px auto; /* Space for UI */
+    color: #aaa;
+}
+.term-msg { margin-bottom: 20px; line-height: 1.5; border-bottom: 1px solid #222; padding-bottom: 10px; }
+.term-user { color: #ff7300; font-weight: bold; }
+.term-ai { color: #ccc; }
+
+/* Interactive History Styles */
+.term-ai.interactive {
+    cursor: pointer;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+.term-ai.interactive:hover {
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+.term-ai.interactive::after {
+    content: " [RESTORE GRAPH]";
+    font-size: 0.7em;
+    color: #555;
+    margin-left: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.term-ai.interactive:hover::after {
+    opacity: 1;
+}
+
+.term-meta { font-size: 0.8em; color: #555; margin-bottom: 4px; }
+
+/* --- SUBTITLES --- */
+#subtitle-mask {
+    position: absolute;
+    bottom: 140px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 85%; 
+    height: 50px;
+    overflow: hidden;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s ease;
+    mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+#subtitle-track {
+    display: flex;
+    align-items: center;
+    justify-content: left; 
+    white-space: nowrap;
+    position: absolute;
+    left: 50%; 
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); 
+}
+
+.char-span {
+    font-family: 'Courier New', monospace; 
+    font-size: 16px; 
+    color: rgba(255, 115, 0, 0.3); 
+    transition: all 0.2s ease; 
+    text-transform: uppercase; 
+    letter-spacing: 2px;
+    flex-shrink: 0; 
+    margin-right: 15px; 
+}
+
+.char-span.active {
+    color: #fff; 
+    font-size: 22px; 
+    font-weight: bold;
+    text-shadow: 0 0 15px rgba(255, 115, 0, 0.9);
+    transform: scale(1.1);
+}
+
+/* --- FULL TEXT DISPLAY (New) --- */
+#full-text-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    width: 85%;
+    max-width: 700px;
+    max-height: 60vh;
+    background: rgba(10, 10, 12, 0.9);
+    border: 1px solid rgba(255, 115, 0, 0.3);
+    padding: 30px;
+    border-radius: 10px;
+    z-index: 20;
+    backdrop-filter: blur(15px);
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#full-text-display.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -55%) scale(0.95);
+}
+
+#text-content {
+    color: #e0e0e0;
+    font-size: 16px;
+    line-height: 1.6;
+    text-align: left;
+    white-space: pre-wrap;
+}
+
+/* --- UI LAYER --- */
+#ui-layer {
+    position: fixed; 
+    bottom: 0; /* Changed from 30px to 0 for better mobile anchoring */
+    left: 0;
+    width: 100%;
+    z-index: 10; 
+    display: flex; 
+    justify-content: center;
+    pointer-events: none; /* Let clicks pass through around the bar */
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+#ui-bar {
+    pointer-events: auto;
+    display: flex;
+    gap: 10px;
+    width: 90%;
+    max-width: 500px;
+    background: rgba(10, 10, 10, 0.9); 
+    padding: 12px; 
+    border-radius: 30px;
+    border: 1px solid rgba(255, 115, 0, 0.2); 
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+
+#ui-bar.auth-mode {
+    border-color: #ff0000;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.2);
+}
+
+input {
+    background: transparent; border: none; color: #ff7300; padding: 10px 10px;
+    flex-grow: 1; font-family: monospace; text-transform: uppercase; 
+    outline: none; font-size: 16px;
+}
+
+button {
+    background: rgba(255, 115, 0, 0.15); border: 1px solid rgba(255, 115, 0, 0.5);
+    color: #ff7300; padding: 10px 15px; border-radius: 20px; font-weight: bold;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap; font-size: 14px;
+}
+button:active { background: #ff7300; color: black; transform: scale(0.95); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Mobile specific adjustment */
+@media (max-width: 600px) {
+    #ui-bar { width: 95%; padding: 8px; }
+    button { padding: 8px 12px; font-size: 12px; }
+    input { font-size: 14px; }
+}
+
+#node-tooltip {
+    position: fixed;
+    background: rgba(10, 15, 20, 0.95);
+    border: 1px solid rgba(255, 115, 0, 0.5);
+    color: #eee;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    max-width: 250px;
+    z-index: 100;
+    pointer-events: none; /* Mouse passes through so it doesn't flicker */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.2s ease;
+    text-transform: uppercase;
+    line-height: 1.4;
+}
+
+#node-tooltip.hidden {
+    opacity: 0;
+}
+
+#node-tooltip strong {
+    color: #ff7300;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+#director-overlay {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.9); 
+    z-index: 50;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    
+    /* NEW: FADE TRANSITION SETTINGS */
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#director-overlay.hidden {
+    /* Instead of display:none, we hide it while keeping it animatable */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; 
+}
+
+/* Update the Stage to be flexible */
+#media-stage {
+    width: 90%; 
+    max-width: 1000px;
+    /* REMOVE aspect-ratio: 16/9 here. We will add it via class for videos only. */
+    height: auto;
+    max-height: 85vh; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+/* ADD THIS: Forces height when showing the list */
+#media-stage.list-mode {
+    height: 400px; /* Sufficient height for cards + padding */
+}
+
+/* Specific mode for Video (Forces 16:9) */
+#media-stage.video-mode {
+    aspect-ratio: 16 / 9;
+}
+
+/* Specific mode for Image (Auto size) */
+#media-stage.image-mode {
+    aspect-ratio: auto; /* Let the image define the shape */
+    width: auto;        /* Shrink width to fit the image if needed */
+}
+
+#media-image {
+    width: 100%;
+    height: auto;
+    max-height: 70vh; /* Prevent tall images from overflowing */
+    object-fit: contain;
+    border: 1px solid #ff7300;
+    background: #000;
+    display: block;
+}
+
+#media-image.hidden {
+    display: none;
+}
+
+#media-frame {
+    width: 100%; height: 100%;
+    border: 1px solid #ff7300;
+    background: #000;
+}
+
+#media-controls {
+    display: flex; 
+    justify-content: center; /* Changed from space-between to center */
+    align-items: center;
+    color: #ff7300; 
+    font-family: monospace;
+    padding: 10px 0;
+}
+/* --- DIRECTOR CAROUSEL VIEW --- */
+#media-list {
+    width: 100%;
+    height: 100%;
+    /* Horizontal Scroll Layout */
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    padding: 40px 60px; /* Padding for hover growth */
+    box-sizing: border-box;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    
+    /* Center items vertically */
+    align-items: center;
+    
+    /* Background for the strip */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(10,10,10,0.8) 50%, rgba(0,0,0,0.9) 100%);
+}
+
+#media-list.hidden {
+    display: none;
+}
+
+#media-frame.hidden {
+    display: none;
+}
+
+/* Hide Scrollbar but allow scrolling */
+#media-list::-webkit-scrollbar { height: 6px; }
+#media-list::-webkit-scrollbar-thumb { background: #ff7300; border-radius: 3px; }
+#media-list::-webkit-scrollbar-track { background: transparent; }
+
+/* Individual File Card */
+.media-item {
+    /* Fixed Card Size */
+    min-width: 280px;
+    width: 280px;
+    aspect-ratio: 16 / 9;
+    
+    /* Carousel Physics */
+    scroll-snap-align: center;
+    
+    /* Cyber Card Styling */
+    position: relative;
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* Hover Effect: Scale & Glow */
+.media-item:hover {
+    transform: scale(1.1) translateY(-5px);
+    border-color: #ff7300;
+    box-shadow: 0 0 20px rgba(255, 115, 0, 0.4);
+    z-index: 10;
+}
+
+/* Thumbnail Image (Background) */
+.media-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.media-item:hover .media-thumb {
+    opacity: 1;
+}
+
+/* Fallback placeholder if no image */
+.media-thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, #222 0%, #000 100%);
+    color: #333;
+    font-size: 40px;
+}
+
+/* Info Overlay (Bottom) */
+.media-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0));
+    padding: 20px 10px 10px 10px;
+    box-sizing: border-box;
+    transform: translateY(5px);
+    transition: transform 0.3s;
+}
+
+.media-item:hover .media-info {
+    transform: translateY(0);
+}
+
+.media-title {
+    color: #eee;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    text-shadow: 0 2px 4px black;
+}
+
+.media-type {
+    color: #ff7300;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* --- ENTITY FLOATING DECK (STACKED MODE) --- */
+#entity-deck-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 150px; /* Space between different entities */
+    z-index: 40; /* Below overlays, above canvas */
+    pointer-events: none;
+    perspective: 1000px;
+}
+
+/* Container for a single entity's stack */
+.entity-stack {
+    position: relative;
+    width: 240px;
+    height: 340px;
+    pointer-events: auto;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    cursor: pointer;
+}
+
+/* The name label floating above the stack */
+.entity-stack-label {
+    position: absolute;
+    top: -40px;
+    width: 100%;
+    text-align: center;
+    color: #ff7300;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 14px;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+    opacity: 0.8;
+    letter-spacing: 2px;
+}
+
+/* Individual Image Cards */
+.entity-card-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    /* "Untidy" rotation is handled in JS */
+}
+
+.entity-card-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+    transition: opacity 0.3s;
+}
+
+/* Hover effect for the whole stack */
+.entity-stack:hover .entity-card-item:nth-child(1) {
+    border-color: #ff7300;
+    box-shadow: 0 0 25px rgba(255, 115, 0, 0.3);
+}
