@@ -37,7 +37,17 @@
     
     <div id="director-overlay" class="hidden" onclick="closeMedia()">
         <div id="media-stage" onclick="event.stopPropagation()">
-            <iframe id="media-frame" src="" frameborder="0" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>
+            <iframe 
+    id="media-frame" 
+    src="" 
+    frameborder="0" 
+    allow="autoplay; fullscreen; encrypted-media; picture-in-picture" 
+    allowfullscreen 
+    webkitallowfullscreen 
+    mozallowfullscreen 
+    playsinline>
+</iframe>
+
 
             <img id="media-image" class="hidden" src="" alt="Archive Evidence">
 
@@ -54,3 +64,4 @@
 </body>
 
 </html>
+
