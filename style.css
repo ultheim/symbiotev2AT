@@ -556,4 +556,43 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .entity-stack:hover .entity-card-item:nth-child(1) {
     border-color: #ff7300;
     box-shadow: 0 0 25px rgba(255, 115, 0, 0.3);
+
+}
+
+/* --- MOBILE OPTIMIZATIONS (iPhone/Android) --- */
+@media (max-width: 768px) {
+    /* 1. Make the container scrollable horizontally */
+    #entity-deck-container {
+        justify-content: flex-start; /* Align left to allow scrolling */
+        overflow-x: auto;            /* Enable scroll */
+        padding-left: 50vw;          /* Center the first item initially */
+        margin-left: -120px;         /* Offset to true center (half card width) */
+        gap: 40px;                   /* Shrink gap significantly */
+        perspective: 800px;
+        
+        /* Hide Scrollbar */
+        scrollbar-width: none; 
+        -ms-overflow-style: none;
+    }
+    #entity-deck-container::-webkit-scrollbar { 
+        display: none; 
+    }
+
+    /* 2. Shrink the stacks */
+    .entity-stack {
+        width: 200px;  /* Smaller width */
+        height: 280px; /* Smaller height */
+        flex-shrink: 0; /* Prevent squashing */
+    }
+
+    .entity-stack-label {
+        font-size: 12px;
+        top: -30px;
+    }
+
+    /* 3. Adjust input bar for mobile */
+    #ui-bar {
+        width: 90%;
+        bottom: 20px;
+    }
 }
